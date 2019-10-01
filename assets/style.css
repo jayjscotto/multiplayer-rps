@@ -1,0 +1,25 @@
+* {
+    font-size: 16px;
+    font-family: 'Raleway', sans-serif;
+    --clr-light: rgb(114, 203, 241);
+    --clr-light-rgba: rgba(131, 208, 242, 0.5);
+}
+
+.title {
+    font-weight: 600;
+    opacity: 0.90;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.cyan {
+    color: var(--clr-light);
+    font-weight: 900;
+    font-size: 2rem;
+    text-shadow: 1px 1px rgba(0,0,0,0.3);
+}
+
+.typography {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
