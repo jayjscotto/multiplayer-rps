@@ -5,6 +5,10 @@
     --clr-light-rgba: rgba(131, 208, 242, 0.5);
 }
 
+body {
+    background: #ABCDEE;
+}
+
 .title {
     font-weight: 600;
     opacity: 0.90;
