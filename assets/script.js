@@ -33,16 +33,12 @@ var firebaseConfig = {
     let player1Guess = "";
     let player2Guess = "";
 
-    //display Waiting for Player # if absence of player...
-    if (!player1 && !player2) {
-        $("#player1display").text(`Waiting for Player One...`);
-        $("#player2display").text(`Waiting for Player Two...`);
-    } else if (player1 && !player2) {
-        $("#player2display").text(`Waiting for Player Two...`);
-    }
+    //game state
+    let activeGame = "";
+    let turn = 1;
     //database listener for any changes in users
     //see submit event listener for more context
-    database.ref("/users/").on("value", function(snapshot) {
+    database.ref("/game/users/").on("value", function(snapshot) {
         if (snapshot.child("player1").exists()) {
             console.log('Player 1 is in the game');
 
@@ -50,12 +46,13 @@ var firebaseConfig = {
             player1 = snapshot.val().player1;
             name1 = player1.name;
 
-            //TODO append text to the player's UI
+            //Add text to the player one's section of UI
             $("#player1display").text(`Player One: ${name1}`);
 
         }
         else {
-            console.log(`No Player 2`);
+            console.log(`No Player 1`);
+            $("#player1display").text(`Waiting for Player One to join game...`);
         }
 
         if (snapshot.child("player2").exists()) {
@@ -65,11 +62,12 @@ var firebaseConfig = {
             player2 = snapshot.val().player2;
             name2  = player2.name;
 
-            //TODO append text to the player's UI
+            //add text to the player two's section of UI
             $("#player2display").text(`Player Two: ${name2}`);
 
         } else {
             console.log(`No Player 2`);
+            $("#player2display").text(`Waiting for Player Two to join game...`);
         }
     }, function(errorObject) {
         console.log(`Error: ${errorObject}`)
@@ -110,9 +108,9 @@ $("#submitName").on("click", function() {
             losses: 0
         }
         //add player to the database
-        database.ref().child("/users/player1").set(player1);
+        database.ref().child("/game/users/player1").set(player1);
         //remove when disconnected
-        database.ref("/users/player1").onDisconnect().remove();
+        database.ref("/game/users/player1").onDisconnect().remove();
 
     } else if ((player1) && (player2 === null)) {
         displayName = $("#playerNameInput").val();
@@ -125,12 +123,14 @@ $("#submitName").on("click", function() {
         }
 
         //add player to database
-        database.ref().child("/users/player2").set(player2);
+        database.ref().child("/game/users/player2").set(player2);
 
         //remove when disconnected
-        database.ref("/users/player2").onDisconnect().remove();
+        database.ref("/game/users/player2").onDisconnect().remove();
     }
 })
+
+
         
 ////////////////////////////////////////////////////////////////////
 ///////////////*/*/* MONITOR PLAYER CHOICES */*/*///////////////////
@@ -155,7 +155,7 @@ $(".player1choices").on("click", function() {
     event.preventDefault();
     if (player1 && player2) {
         if (displayName === player1.name) {
-            let choice = $(this).val();
+            let choice = $(this).text();
             console.log(`Player1 Choice ${choice}`);
         }
     }
@@ -166,7 +166,7 @@ $(".player2choices").on("click", function() {
 
     if (player1 && player2) {
         if (displayName === player2.name) {
-            let choice = $(this).val();
+            let choice = $(this).text();
             console.log(`Player2 Choice ${choice}`);
         }
     }
@@ -180,7 +180,7 @@ $(".player2choices").on("click", function() {
 //////////////////*/*/* LOGIC EVAL */*/*////////////////////////////
 ///////////////////////////////////////////////////////////////////
 
-database.ref("/users/player1/guesses").on("value", function(snapshot){
+database.ref("/game/users/player1/guesses").on("value", function(snapshot){
     if (snapshot.child("player1Guess").exists() && snapshot.child("player2Guess").exists()) {
         player1Guess = snapshot.val().player1Guess;
         player2Guess = snapshot.val().player2Guess;
@@ -194,3 +194,21 @@ database.ref("/users/player1/guesses").on("value", function(snapshot){
 
     }});
 
+
+
+////db structure
+    //game object
+        //users
+            //player1
+                //name
+                //wins
+                //losses
+                //guess ---> dynamically added
+            //player2
+                //name
+                //wins
+                //losses
+                //guess ---> dynamically added
+        //active game-boolean
+        
+//conditional choice logic runs on whether guess child of player1 and player2 exist
