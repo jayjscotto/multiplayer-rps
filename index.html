@@ -11,7 +11,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
-<title>Jason Scotto Giphy Clone</title>
+<title>Multiplayer Rock Paper Scissors</title>
 </head>    
 <body>
     <!-- HEADER -->
@@ -33,7 +33,7 @@
         <div class="jumbotron text-dark mx-auto" style="width: 50rem;">
                 <div class="row form-group justify-content-center">
                     <label for="playerNameInput"><h3 class="font-weight-bold mx-3">Enter Name: </h3> </label>
-                    <input type="text" class="form-control mx-3l" id="playerNameInput" style="width: 18rem;"placeholder="Jay">
+                    <input type="text" class="form-control mx-3l" id="playerNameInput" style="width: 18rem;">
                     <a class="btn btn-warning btn-lg my-auto mx-3" id="submitName" role="button">Submit</a>
                 </div>
                 <div class="row">
@@ -56,8 +56,8 @@
                 </div>
                 
                 <div class="col-6">
-                    <div class="jumbotron text-center text-dark">
-                    <div id="turn" class="row"><!--Whose turn appended here--></div>
+                    <div class="jumbotron text-dark">
+                    <div  class="row text-center"><h3 id="turn"><!--Whose turn appended here--></h3></div>
                        <div class="row">
                             <div class="col">Player One Choice:</div>
                             <div class="col"><img src="assets/images/rps.jpg" alt="rock-paper-scissor.jpg" width="200"></div>
