@@ -28,13 +28,6 @@ let displayName = "";
 //turn #
 let turn = 1
 
-//display Waiting for Player # if absence of player...
-// if (!player1 && !player2) {
-//     $("#player1display").text(`Waiting for Player One to join game...`);
-//     $("#player2display").text(`Waiting for Player Two to join game...`);
-// } else if (player1 && !player2) {
-//     $("#player2display").text(`Waiting for Player Two...`);
-// }
 //database listener for any changes in users
 //see submit event listener for more context
 let gameState = false;
@@ -83,23 +76,7 @@ database.ref("/users/").on("value", function(snapshot) {
 /////////////// */*/* ADDING PLAYERS  */*/* ///////////////////////////
 //////////////////////////////////////////////////////////////////////
 
-//event listener for submit button
-//take input value
-//if player1 does not exist
-        //add player1 object
-        //playerName = input value
-        //add player to the database
-            //database.ref().child("/users/player1").set(player1)
-        //when user disconnects, remove them from the db
-            //database.ref("/users/player1").onDisconnect().remove()
-//else if player2 is null and player1 is not null
-    //add player 2 object
-        //playerName = input value
-        //add player to the database
-            //database.ref().child("/users/player1").set(player1)
-        //when user disconnects, remove them from the db
-            //database.ref("/users/player1").onDisconnect().remove()
-
+//add player to game
 $("#submitName").on("click", function() {
     event.preventDefault();
 
@@ -111,6 +88,7 @@ $("#submitName").on("click", function() {
             name: displayName,
             wins: 0,
             losses: 0,
+            ties: 0,
             guess: ""
         }
         //add player to the database
@@ -126,15 +104,18 @@ $("#submitName").on("click", function() {
             name: displayName,
             wins: 0,
             losses: 0,
+            ties: 0,
             guess: ""
         }
 
         //add player to database
         database.ref().child("/users/player2").set(player2);
 
+        //when player2 added and player1 is connected, gameState turns to true and guessState is false
         gameState = true;
         database.ref("/game/gameState").set(gameState);
-
+        guessState = false;
+        database.ref("/game/guessState").set(guessState);
         //remove when disconnected
         database.ref("/users/player2").onDisconnect().remove();
     }
@@ -158,7 +139,6 @@ database.ref("/game/gameState").on("value", function(snapshot) {
             if (snapshot.val() === 1) {
                 //turn text in html
                 $("#turn").text(`Player One's Turn...`).attr("class", "text-center");
-                console.log(`player1 turn`);
                 //event listener for player one's button
                 $(".player1choices").on("click", function() {
                     //prevent
@@ -191,6 +171,7 @@ database.ref("/game/gameState").on("value", function(snapshot) {
                             let guess = $(this).text();
                             console.log(`Player2 Choice ${guess}`);
                             database.ref("/users/player2/guess").set(guess);
+                            database.ref("/game/guessState").set(true);
                             //hoist logic function
                             evaluateGame();
                         }
@@ -206,39 +187,52 @@ database.ref("/game/gameState").on("value", function(snapshot) {
 /////////////////////////////////////////////////////////////////////
 //////////////////*/*/* LOGIC EVAL */*/*////////////////////////////
 ///////////////////////////////////////////////////////////////////
-
 function evaluateGame () {
-    if ((player1.guess === "Rock" && player2.guess === "Scissors") || 
-        (player1.guess === "Paper" && player2.guess === "Rock") ||
-        (player1.guess === "Scissors" && player2.guess === "Paper")) {
-            //player 1 wins
-            console.log(`Player One Wins`);
-            console.log(`Player Two Loses`)
-        } else if (player1.guess === player2.guess) {
-            //tie game
-            console.log(`Tie game!`);
-        } else {
-            console.log(`Player One Loses`);
-            console.log(`Player Two Wins`);
+    database.ref("/game/guessState").on("value", function(snapshot) {
+        if (snapshot.val() === true) {
+            console.log(Object.values(database.ref("/users/player1/wins")));
+            // let p1losses = parseInt(database.ref("/users/player1/losses"));
+            // let p1ties = parseInt(database.ref("/users/player1/ties"));
+
+            
+            // let p2wins = parseInt(database.ref("/users/player2/wins"));
+            // let p2losses = parseInt(database.ref("/users/player2/losses"));
+            // let p2ties = parseInt(database.ref("/users/player2/ties"));
+
+            if ((player1.guess === "Rock" && player2.guess === "Scissors") || 
+                (player1.guess === "Paper" && player2.guess === "Rock") ||
+                (player1.guess === "Scissors" && player2.guess === "Paper")) {
+                    //player 1 wins
+                    database.ref("/users/player1/wins").set(p1wins++);
+                    database.ref("/users/player2/losses").set(p2losses++);
+                } else if (player1.guess === player2.guess) {
+                    //tie game
+                    database.ref("/users/player1/ties").set(p1ties++);
+                    database.ref("/users/player2/ties").set(p2ties++);
+                } else {
+                    database.ref("/users/player1/losses").set(p1losses++);
+                    database.ref("/users/player2/wins").set(p2wins++);
+                }
+    //resetGame();
         }
+    })
 }
 
-
-////db structure
-    //game object
-        //active game-boolean
-        //turn
-    //users
-        //player1
-            //name
-            //wins
-            //losses
-            //guess ---> dynamically added
-        //player2
-            //name
-            //wins
-            //losses
-            //guess ---> dynamically added
     
-        
-//conditional choice logic runs on whether guess child of player1 and player2 exist
+
+//display results dynamically for each game
+    //display what each player chose
+    //display winner
+//Offer reset button
+//if player1 clicks reset button
+    //player1 wants to play again... what about you?
+//if player2 clicks reset button after player1 has clicked reset button
+    //clear all previous game text....
+    //clear guess from each player
+    //turn resets to 1
+        //hopefully that makes the game restart...plz
+
+function resetGame() {
+
+}
+
