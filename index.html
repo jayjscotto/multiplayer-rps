@@ -37,13 +37,13 @@
                 <a class="btn btn-warning btn-lg my-auto mx-3" id="submitName" role="button">Submit</a>
             </div>
             <div class="row">
-                <div class="col" id="add-confirmed"><!-- Added player confirmed here--></div>
+                <div class="col text-center" id="player-notify"><!-- Added player confirmed here--></div>
             </div>
         </div>
         
         <div class="row mt-5">
             <div class="col-3 border rounded border-secondary">
-                <h3 id="player1display" class="font-weight-bold"><!-- Player1 Display Name Appended Here --> </h3>
+                <h3 id="player1display" class="font-weight-bold"><!-- Player1 Display Name added dynamically Here --> </h3>
                 <div class="col my-4">
                     <a class="player1choices btn btn-primary btn-lg" role="button">Rock</a>
                 </div>
@@ -59,19 +59,28 @@
                 <div class="jumbotron text-dark">
                 <div  class="row">
                     <div class="col mx-auto text-center">
-                        <h3 id="turn"><!--Whose turn appended here--></h3>
+                        <h3 id="turn"><!--Whose turn added dynamically here--></h3>
                     </div>
                 </div>
                     <div class="row">
-                        <div class="col">Player One Choice:</div>
+                        <div class="col">
+                            <h4 id="player1-choice"><!--Player 1 Choice added dynamically here--></h4>
+                        </div>
                         <div class="col"><img src="assets/images/rps.jpg" alt="rock-paper-scissor.jpg" width="200"></div>
-                        <div class="col">Player Two Choice:</div>
+                        <div class="col">
+                            <h4 id="player2-choice"><!--Player 2 Choice added dynamically here--></h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <h3 id="results"> <!--Results added dynamically here--></h3>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="col-3 border rounded border-secondary">
-                <h3 id="player2display" class="font-weight-bold"><!-- Player2 Display Name Appended Here --></h3>
+                <h3 id="player2display" class="font-weight-bold"><!-- Player2 Display Name added dynamically Here --></h3>
                 <div class="col my-4">
                         <a class="player2choices btn btn-danger btn-lg" role="button">Rock</a>
                     </div>
@@ -83,6 +92,7 @@
                     </div>
             </div>
         </div>
+        
     </div>
     
     <div class="row">
