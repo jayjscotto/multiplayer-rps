@@ -28,6 +28,9 @@ let displayName = "";
 //turn #
 let turn = 1
 
+//winner
+let winner = "";
+
 //database listener for any changes in users
 //see submit event listener for more context
 let gameState = false;
@@ -191,14 +194,10 @@ database.ref("/game/gameState").on("value", function(snapshot) {
 /////////////////////////////////////////////////////////////////////
 //////////////////*/*/* LOGIC EVAL */*/*////////////////////////////
 ///////////////////////////////////////////////////////////////////
+
 function evaluateGame () {
     database.ref("/game/guessState").on("value", function(snapshot) {
         if (snapshot.val() === true) {
-            //display results
-            $("#turn").empty();
-            $("#player1-choice").text(`Player One Choice: ${player1.guess}`);
-            $("#player2-choice").text(`Player Two Choice: ${player2.guess}`);
-
             if ((player1.guess === "Rock" && player2.guess === "Scissors") || 
                 (player1.guess === "Paper" && player2.guess === "Rock") ||
                 (player1.guess === "Scissors" && player2.guess === "Paper")) {
@@ -208,6 +207,7 @@ function evaluateGame () {
                     player2.losses++;
                     database.ref("/users/player1/wins").set(player1.wins);
                     database.ref("/users/player2/losses").set(player2.losses);
+                    database.ref("/game/winner").set("player1");
                 } else if (player1.guess === player2.guess) {
                     $("#results").text(`Tie Game!`);
                     //tie game
@@ -215,6 +215,7 @@ function evaluateGame () {
                     player2.ties++;
                     database.ref("/users/player1/ties").set(player1.ties);
                     database.ref("/users/player2/ties").set(player2.ties);
+                    database.ref("/game/winner").set("tie");
                 } else {
                     $("#results").text(`Player 2 Wins!`);
                     //player 2 wins
@@ -222,12 +223,29 @@ function evaluateGame () {
                     player2.wins++;
                     database.ref("/users/player1/losses").set(player1.losses++);
                     database.ref("/users/player2/wins").set(player2.wins++);
+                    database.ref("/game/winner").set("player2");
                 }
         }
     })
 }
 
-    
+database.ref("/game/winner").on("value", function(snapshot) {
+    //display results
+    $("#turn").empty();
+    $("#player1-choice").text(`Player One Choice: ${player1.guess}`);
+    $("#player2-choice").text(`Player Two Choice: ${player2.guess}`);
+
+    if (snapshot.val() === "player1") {
+        $("#results").text("Player One Wins!");
+    } else if (snapshot.val() === "player2") {
+        $("#results").text("Player 2 Wins!");
+    } else {
+        $("#results").text("It's a Tie!");
+    }
+})  
+
+
+
 
 //display results dynamically for each game
     //display what each player chose
