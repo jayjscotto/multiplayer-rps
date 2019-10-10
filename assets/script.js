@@ -26,7 +26,7 @@ let name2 = "";
 let displayName = "";
 
 //turn #
-let turn = 1
+let turn = 1;
 
 //winner
 let winner = "";
@@ -35,8 +35,12 @@ let winner = "";
 //see submit event listener for more context
 let gameState = false;
 database.ref("/game/gameState").set(gameState);
-let guessState = false;
-database.ref("/game/guessState").set(guessState);
+
+database.ref("/game").child("guessState").remove();
+database.ref("/game").child("reset").remove();
+database.ref("/game").child("winner").remove();
+
+
 
 database.ref("/users/").on("value", function(snapshot) {
     if (snapshot.child("player1").exists()) {
@@ -158,6 +162,7 @@ database.ref("/game/gameState").on("value", function(snapshot) {
                             let guess = $(this).text();
                             console.log(`Player1 Choice ${guess}`);
                             database.ref("/users/player1/guess").set(guess);
+                            database.ref("/game/guessState/player1").set(true);
                             gameTurn++
                             database.ref("game/turn/").set(gameTurn);
                         }
@@ -178,16 +183,15 @@ database.ref("/game/gameState").on("value", function(snapshot) {
                             let guess = $(this).text();
                             console.log(`Player2 Choice ${guess}`);
                             database.ref("/users/player2/guess").set(guess);
-                            database.ref("/game/guessState").set(true);
-                            //hoist evaluation function
-                            evaluateGame();
+                            database.ref("/game/guessState/player2").set(true);
+
                         }
                     }
                 })
             }
         }})
     } else {
-        console.log('gamestate is broken');
+        console.log('gamestate is false');
     }
 })
 
@@ -196,41 +200,50 @@ database.ref("/game/gameState").on("value", function(snapshot) {
 ///////////////////////////////////////////////////////////////////
 
 function evaluateGame () {
-    database.ref("/game/guessState").on("value", function(snapshot) {
-        if (snapshot.val() === true) {
-            if ((player1.guess === "Rock" && player2.guess === "Scissors") || 
-                (player1.guess === "Paper" && player2.guess === "Rock") ||
-                (player1.guess === "Scissors" && player2.guess === "Paper")) {
-                   $("#results").text(`Player One Wins!`);
-                    //player 1 wins
-                    player1.wins++;
-                    player2.losses++;
-                    database.ref("/users/player1/wins").set(player1.wins);
-                    database.ref("/users/player2/losses").set(player2.losses);
-                    database.ref("/game/winner").set("player1");
-                } else if (player1.guess === player2.guess) {
-                    $("#results").text(`Tie Game!`);
-                    //tie game
-                    player1.ties++;
-                    player2.ties++;
-                    database.ref("/users/player1/ties").set(player1.ties);
-                    database.ref("/users/player2/ties").set(player2.ties);
-                    database.ref("/game/winner").set("tie");
-                } else {
-                    $("#results").text(`Player 2 Wins!`);
-                    //player 2 wins
-                    player1.losses++;
-                    player2.wins++;
-                    database.ref("/users/player1/losses").set(player1.losses++);
-                    database.ref("/users/player2/wins").set(player2.wins++);
-                    database.ref("/game/winner").set("player2");
-                }
+    console.log(`Player1Guess: ${player1.guess} // Player2Guess: ${player2.guess}`)
+    if ((player1.guess === "Rock" && player2.guess === "Scissors") || 
+        (player1.guess === "Paper" && player2.guess === "Rock") ||
+        (player1.guess === "Scissors" && player2.guess === "Paper")) {
+            $("#results").text(`Player One Wins!`);
+            //player 1 wins
+            player1.wins++;
+            player2.losses++;
+            database.ref("/users/player1/wins").set(player1.wins);
+            database.ref("/users/player2/losses").set(player2.losses);
+            database.ref("/game/winner").set("player1");
+        } else if (player1.guess === player2.guess) {
+            $("#results").text(`Tie Game!`);
+            //tie game
+            player1.ties++;
+            player2.ties++;
+            database.ref("/users/player1/ties").set(player1.ties);
+            database.ref("/users/player2/ties").set(player2.ties);
+            database.ref("/game/winner").set("tie");
+        } else {
+                $("#results").text(`Player 2 Wins!`);
+                //player 2 wins
+                player1.losses++;
+                player2.wins++;
+                database.ref("/users/player1/losses").set(player1.losses++);
+                database.ref("/users/player2/wins").set(player2.wins++);
+                database.ref("/game/winner").set("player2");
         }
-    })
+    
 }
+
+
+database.ref("/game/guessState").on("value", function(snapshot) {
+    if ((snapshot.child("player1").exists()) && (snapshot.child("player2").exists())) {
+        evaluateGame();
+        database.ref("/game/gameState").set(false);
+    }
+    
+});
+
 
 database.ref("/game/winner").on("value", function(snapshot) {
     //display results
+    if (database.ref("/game/guessState").child("player2").exists() && database.ref("/game/guessState").child("player1").exists()) {
     $("#turn").empty();
     $("#player1-choice").text(`Player One Choice: ${player1.guess}`);
     $("#player2-choice").text(`Player Two Choice: ${player2.guess}`);
@@ -242,27 +255,63 @@ database.ref("/game/winner").on("value", function(snapshot) {
     } else {
         $("#results").text("It's a Tie!");
     }
+
+    $("#player-notify").text("Click Reset below to play a new game!");
+
+    gameState = false;
+    database.ref("/game/gameState").set(gameState);
+    }
 })  
 
 
 
+$("#reset").on("click", function() {
+    if (player1 && player2) {
+        if (displayName === player1.name) {
+            database.ref("/game/reset/player1").set(true);
+        }
+        if (displayName === player1.name) {
+            database.ref("/game/reset/player2").set(true);
+        }
+    } else {
+        console.log('missing player!')
+    }
+})
 
-//display results dynamically for each game
-    //display what each player chose
-    //display winner
-//Offer reset button
-//if player1 clicks reset button
-    //player1 wants to play again... what about you?
-//if player2 clicks reset button after player1 has clicked reset button
-    //clear all previous game text....
-    //clear guess from each player
-    //turn resets to 1
-        //hopefully that makes the game restart...plz
+database.ref("/game/reset").on("value", function(snapshot) {
+    if (snapshot.child("player1").exists() && !snapshot.child("player2").exists()) {
+        $("#player-notify").text("Player One Wants to play a new game! Waiting on Player Two...")
+    }
+    if (snapshot.child("player2").exists() && !snapshot.child("player1").exists()) {
+        $("#player-notify").text("Player Two Wants to play a new game! Waiting on Player One...")
+    }
+
+    if ((snapshot.child("player1").exists()) && snapshot.child("player2").exists()) {
+        $("#player-notify").text("Starting a new game! Get ready...")
+        resetGame();
+    }
+
+})
 
 function resetGame() {
     //empty the proper text areas
-    $("#player1-choice").empty();
-    $("#player2-choice").empty();
-    $("#results").empty();
+    $("#player1-choice").text(`HELLO RESET`);
+    $("#player2-choice").text(`HELLO RESET`);
+    $("#results").text(`HELLO RESET`);
+
+    database.ref("/game/reset").child("player1").remove();
+    database.ref("/game/reset").child("player2").remove();
+
+    //set the guesses to null
+    database.ref("/users/player1").child("guess").remove();
+    database.ref("/users/player2").child("guess").remove();
+
+    //set back to player1's turn
+    database.ref("/game/turn").set(0);
+    database.ref("/game").child("guessState").remove();
+    database.ref("/game").child("reset").remove();
+    database.ref("/game").child("winner").remove();
+
+
 }
 
