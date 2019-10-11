@@ -31,6 +31,9 @@ let turn;
 //winner
 let winner = "";
 
+//hide reset btn
+$("#reset").hide();
+
 //database listener for any changes in users
 //see submit event listener for more context
 let gameState = false;
@@ -140,59 +143,57 @@ $("#submitName").on("click", function() {
 
 database.ref("/game/gameState").on("value", function(snapshot) {
     if (snapshot.val() === true) {
+          
         //set the turn number
         turn = 1;
         let gameTurn = turn;
         database.ref("/game/turn").set(gameTurn);
-        //check if turn is 1
-
+        
         //check for turn value
         database.ref("game/turn/").on("value", function(snapshot) {
             if (player1 && player2) {
-            if (snapshot.val() === 0) {
-                return;
-            }
-            if ((snapshot.val() === 1) && gameState === true) {
-                //turn text in html
-                $("#turn").text(`Player One's Turn...`).attr("class", "text-center");
-                //event listener for player one's button
-                $(".player1choices").on("click", function() {
-                    //prevent
-                    event.preventDefault();
-    
-                    //conditional to update and write player 1's choice
-                    if ((player1 && player2) && snapshot.val() === 1) {
-                        if (displayName === player1.name) {
-                            let guess = $(this).text();
-                            console.log(`Player1 Choice ${guess}`);
-                            database.ref("/users/player1/guess").set(guess);
-                            database.ref("/game/guessState/player1").set(true);
-                            gameTurn++
-                            database.ref("game/turn/").set(gameTurn);
+                if ((snapshot.val() === 1) && gameState === true) {
+                  
+                    //turn text in html
+                    $("#turn").text(`Player One's Turn...`).attr("class", "text-center");
+                    //event listener for player one's button
+                    $(".player1choices").on("click", function() {
+                        //prevent
+                        event.preventDefault();
+        
+                        //conditional to update and write player 1's choice
+                        if ((player1 && player2) && snapshot.val() === 1) {
+                            if (displayName === player1.name) {
+                                let guess = $(this).text();
+                                console.log(`Player1 Choice ${guess}`);
+                                database.ref("/users/player1/guess").set(guess);
+                                database.ref("/game/guessState/player1").set(true);
+                                gameTurn++
+                                database.ref("game/turn/").set(gameTurn);
+                            }
                         }
-                    }
-                })
-            }
-            //check for turn 2
-            if (snapshot.val() === 2) {
-                //turn text in html
-                $("#turn").text(`Player Two's Turn...`).attr("class", "text-center  ");
-                //event listener for player one's button
-                $(".player2choices").on("click", function() {
-                    //prevent
-                    event.preventDefault();
-                    //conditional to update and write player 2's choice
-                    if (player1 && player2) {
-                        if (displayName === player2.name) {
-                            let guess = $(this).text();
-                            console.log(`Player2 Choice ${guess}`);
-                            database.ref("/users/player2/guess").set(guess);
-                            database.ref("/game/guessState/player2").set(true);
+                    })
+                }
+                //check for turn 2
+                if (snapshot.val() === 2) {
+                    //turn text in html
+                    $("#turn").text(`Player Two's Turn...`).attr("class", "text-center  ");
+                    //event listener for player one's button
+                    $(".player2choices").on("click", function() {
+                        //prevent
+                        event.preventDefault();
+                        //conditional to update and write player 2's choice
+                        if (player1 && player2) {
+                            if (displayName === player2.name) {
+                                let guess = $(this).text();
+                                console.log(`Player2 Choice ${guess}`);
+                                database.ref("/users/player2/guess").set(guess);
+                                database.ref("/game/guessState/player2").set(true);
 
+                            }
                         }
-                    }
-                })
-            }
+                    })
+                }
         }})
     } else {
         console.log('gamestate is false');
@@ -208,40 +209,36 @@ function evaluateGame () {
     if ((player1.guess === "Rock" && player2.guess === "Scissors") || 
         (player1.guess === "Paper" && player2.guess === "Rock") ||
         (player1.guess === "Scissors" && player2.guess === "Paper")) {
-            $("#results").text(`Player One Wins!`);
+            database.ref("/game/winner").set("player1");
             //player 1 wins
             player1.wins++;
-            player2.losses++;
             database.ref("/users/player1/wins").set(player1.wins);
+            player2.losses++;
             database.ref("/users/player2/losses").set(player2.losses);
-            database.ref("/game/winner").set("player1");
         } else if (player1.guess === player2.guess) {
-            $("#results").text(`Tie Game!`);
+            database.ref("/game/winner").set("tie");
             //tie game
             player1.ties++;
-            player2.ties++;
             database.ref("/users/player1/ties").set(player1.ties);
+            player2.ties++;
             database.ref("/users/player2/ties").set(player2.ties);
-            database.ref("/game/winner").set("tie");
         } else {
-                $("#results").text(`Player 2 Wins!`);
-                //player 2 wins
-                player1.losses++;
-                player2.wins++;
-                database.ref("/users/player1/losses").set(player1.losses++);
-                database.ref("/users/player2/wins").set(player2.wins++);
-                database.ref("/game/winner").set("player2");
+            database.ref("/game/winner").set("player2");
+            //player 2 wins
+            player1.losses++;
+            database.ref("/users/player1/losses").set(player1.losses++);
+            player2.wins++;
+            database.ref("/users/player2/wins").set(player2.wins++);
         }
     
 }
+
 
 database.ref("/game/guessState").on("value", function(snapshot) {
     if ((snapshot.child("player1").exists()) && (snapshot.child("player2").exists())) {
         evaluateGame();
         gameState = false;
         database.ref("/game/gameState").set(gameState);
-        turn = 0
-        database.ref("/game/turn").set(turn);
     }
     
 });
@@ -249,60 +246,53 @@ database.ref("/game/guessState").on("value", function(snapshot) {
 
 database.ref("/game/winner").on("value", function(snapshot) {
     //display results
-        if (snapshot.val()) {
-            $("#player1-choice").text(`Player One Choice: ${player1.guess}`);
-            $("#player2-choice").text(`Player Two Choice: ${player2.guess}`);
-            $("#turn").text("Click Reset below to play a new game!");
-            
-            if (snapshot.val() === "player1") {
+        $("#player1-choice").text(`Player One Choice: ${player1.guess}`);
+        $("#player2-choice").text(`Player Two Choice: ${player2.guess}`);
+        $("#reset").show();
+        $("#turn").text("Click 'New Game' below to play a new game!");
 
-                $("#results").text("Player One Wins!");
-            } else if (snapshot.val() === "player2") {
-                $("#results").text("Player 2 Wins!");
-            } else {
-                $("#results").text("It's a Tie!");
-            }
+        if (snapshot.val() === "player1") {
+            $("results").text("Player One Wins!")
+        } else if (snapshot.val() === "player2") {
+            $("#results").text("Player Two Wins!");
+        } else {
+            $("#results").text("It's a Tie!");
         }
-        
+        database.ref("/game").child("turn").remove();
 });
 
 
 
 $("#reset").on("click", function() {
-    if (player1 && player2) {
-        if (displayName === player1.name) {
-            database.ref("/game/reset/player1").set(true);
-        }
-        if (displayName === player1.name) {
-            database.ref("/game/reset/player2").set(true);
-        }
-    } else {
-        console.log('missing player!')
+    if (displayName === player1.name) {
+        database.ref("/game/reset/player1").set(true);
+    }
+    if (displayName === player2.name) {
+        database.ref("/game/reset/player2").set(true);
     }
 })
 
 //checks if both players clicked reset buttons
 database.ref("/game/reset").on("value", function(snapshot) {
-    if (snapshot.child("player1").exists() && !snapshot.child("player2").exists()) {
-        $("#player-notify").text("Player One Wants to play a new game! Waiting on Player Two...")
+    if ((snapshot.child("player1").exists()) && (!snapshot.child("player2").exists())) {
+        $("#results").text("Player One Wants to play a new game! Waiting on Player Two...")
     }
-    if (snapshot.child("player2").exists() && !snapshot.child("player1").exists()) {
-        $("#player-notify").text("Player Two Wants to play a new game! Waiting on Player One...")
+    else if ((snapshot.child("player2").exists()) && (!snapshot.child("player1").exists())) {
+        $("#results").text("Player Two Wants to play a new game! Waiting on Player One...")
     }
-
-    if ((snapshot.child("player1").exists()) && snapshot.child("player2").exists()) {
-        $("#player-notify").text("Starting a new game! Get ready...")
+    if ((snapshot.child("player1").val() === true) && (snapshot.child("player2").val() === true)) {
+        $("#results").text("Starting a new game! Get ready...")
         resetGame();
     }
-
 })
 
 //actual reset function
 function resetGame() {
     //empty the proper text areas
-    $("#player1-choice").text(`HELLO RESET`);
-    $("#player2-choice").text(`HELLO RESET`);
-    $("#results").text(`HELLO RESET`);
+    $("#turn").empty();
+    $("#player1-choice").empty();
+    $("#player2-choice").empty();
+    $("#reset").hide();
 
     database.ref("/game/reset").child("player1").remove();
     database.ref("/game/reset").child("player2").remove();
@@ -316,5 +306,6 @@ function resetGame() {
     database.ref("/game").child("guessState").remove();
     database.ref("/game").child("reset").remove();
     database.ref("/game").child("winner").remove();
+    database.ref("/game/gameState").set(true);
 }
 
