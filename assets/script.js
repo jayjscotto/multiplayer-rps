@@ -141,7 +141,7 @@ $("#submitName").on("click", function() {
 ///////////////*/*/* MONITOR PLAYER CHOICES */*/*///////////////////
 ////////////////////////////////////////////////////////////////////
 
-
+//taking in player choices and assigning to variables
 database.ref("/game/gameState").on("value", function(snapshot) {
     if (snapshot.val() === true) {
           
