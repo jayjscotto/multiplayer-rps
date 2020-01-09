@@ -44,6 +44,7 @@ database.ref("/game").child("reset").remove();
 database.ref("/game").child("winner").remove();
 
 
+//Setting player1 and player2
 
 database.ref("/users/").on("value", function(snapshot) {
     if (snapshot.child("player1").exists()) {
@@ -240,7 +241,6 @@ database.ref("/game/guessState").on("value", function(snapshot) {
         gameState = false;
         database.ref("/game/gameState").set(gameState);
     }
-    
 });
 
 
